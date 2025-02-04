@@ -61,11 +61,11 @@ func TestAddPing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.wantErr {
-				mock.ExpectExec("INSERT INTO ping_result \\(ip_address, ping_time, date_successful_ping\\) VALUES \\(\\$1, \\$2, \\$3\\)").
+				mock.ExpectExec(TestAddPingQuery).
 					WithArgs(tt.ping.IPAddress, tt.ping.PingTime, tt.ping.DateSuccessfulPing).
 					WillReturnError(errors.New("error connecting to database"))
 			} else {
-				mock.ExpectExec("INSERT INTO ping_result \\(ip_address, ping_time, date_successful_ping\\) VALUES \\(\\$1, \\$2, \\$3\\)").
+				mock.ExpectExec(TestAddPingQuery).
 					WithArgs(tt.ping.IPAddress, tt.ping.PingTime, tt.ping.DateSuccessfulPing).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			}
@@ -135,10 +135,10 @@ func TestGetAllPing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.wantErr {
-				mock.ExpectQuery("SELECT \\* FROM ping_result").
+				mock.ExpectQuery(TestAllPingQuery).
 					WillReturnError(errors.New("error connecting to database"))
 			} else {
-				mock.ExpectQuery("SELECT \\* FROM ping_result").
+				mock.ExpectQuery(TestAllPingQuery).
 					WillReturnRows(tt.rows)
 			}
 
@@ -152,7 +152,150 @@ func TestGetAllPing(t *testing.T) {
 				assert.Equal(t, tt.want, pings)
 			}
 
-			assert.NoError(t, mock.ExpectationsWereMet())
 		})
 	}
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestGetPing(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Error creating mock database: %v", err)
+	}
+	defer db.Close()
+
+	p := NewPostgres(db)
+	date := time.Now()
+
+	tests := []struct {
+		name    string
+		ip      string
+		row     *sqlmock.Rows
+		want    *models.PingResult
+		wantErr bool
+	}{
+		{
+			name: "Successful ping with all fields",
+			ip:   "192.168.0.1",
+			row: sqlmock.NewRows([]string{"ip_address", "ping_time", "date_successful_ping"}).
+				AddRow("192.168.0.1", 23, date),
+			want: &models.PingResult{
+				IPAddress:          "192.168.0.1",
+				PingTime:           23,
+				DateSuccessfulPing: date,
+			},
+			wantErr: false,
+		},
+		{
+			name:    "Empty result set",
+			ip:      "192.168.0.1",
+			row:     sqlmock.NewRows([]string{"ip_address", "ping_time", "date_successful_ping"}),
+			want:    nil,
+			wantErr: false,
+		},
+		{
+			name:    "Database error",
+			ip:      "192.168.0.1",
+			row:     nil,
+			want:    nil,
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantErr {
+				mock.ExpectQuery(TestGetPingQuery).
+					WithArgs(tt.ip).
+					WillReturnError(errors.New("error connecting to database"))
+			} else {
+				mock.ExpectQuery(TestGetPingQuery).
+					WithArgs(tt.ip).
+					WillReturnRows(tt.row)
+			}
+
+			ping, err := p.GetPing(tt.ip)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+				assert.Nil(t, ping, "Expected nil result when error occurs")
+			} else {
+				assert.NoError(t, err)
+
+				if tt.want == nil {
+					assert.Nil(t, ping, "Expected nil result for empty rows")
+				} else {
+					assert.Equal(t, tt.want, ping, "Result mismatch")
+				}
+			}
+
+		})
+	}
+	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestUpdatePing(t *testing.T) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("Error creating mock database: %v", err)
+	}
+	defer db.Close()
+
+	p := NewPostgres(db)
+	date := time.Now()
+
+	tests := []struct {
+		name    string
+		ping    models.PingResult
+		wantErr bool
+	}{
+		{
+			name: "Successful ping with all fields",
+
+			ping: models.PingResult{
+				IPAddress:          "192.168.0.1",
+				PingTime:           23,
+				DateSuccessfulPing: date,
+			},
+			wantErr: false,
+		},
+		{
+			name: "Empty result set",
+			ping: models.PingResult{
+				IPAddress: "192.168.0.1",
+			},
+			wantErr: false,
+		},
+		{
+			name: "Database error",
+			ping: models.PingResult{
+				IPAddress: "192.168.0.1",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.wantErr {
+				mock.ExpectExec(TestUpdatePingQuery).
+					WithArgs(tt.ping.IPAddress, tt.ping.PingTime, tt.ping.DateSuccessfulPing).
+					WillReturnError(errors.New("error connecting to database"))
+			} else {
+				mock.ExpectExec(TestUpdatePingQuery).
+					WithArgs(tt.ping.IPAddress, tt.ping.PingTime, tt.ping.DateSuccessfulPing).
+					WillReturnResult(sqlmock.NewResult(0, 1))
+			}
+
+			err := p.UpdatePing(tt.ping)
+
+			if tt.wantErr {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+
+	assert.NoError(t, mock.ExpectationsWereMet())
 }

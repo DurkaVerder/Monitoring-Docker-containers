@@ -28,6 +28,21 @@ func InitDB() (*sql.DB, error) {
 	return db, nil
 }
 
+func (p *Postgres) GetPing(IPAdress string) (*models.PingResult, error) {
+	var ping models.PingResult
+	err := p.db.QueryRow(GetPingQuery, IPAdress).Scan(&ping.IPAddress, &ping.PingTime, &ping.DateSuccessfulPing)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Printf("No ping result found for IP: %s\n", IPAdress)
+			return nil, nil
+		}
+		log.Printf("Error getting ping: %v\n", err)
+		return nil, err
+	}
+
+	return &ping, nil
+}
+
 func (p *Postgres) GetAllPing() ([]models.PingResult, error) {
 	rows, err := p.db.Query(AllPingQuery)
 	if err != nil {
@@ -54,6 +69,16 @@ func (p *Postgres) AddPing(ping models.PingResult) error {
 	_, err := p.db.Exec(AddPingQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
 	if err != nil {
 		log.Printf("Error adding ping: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+
+func (p *Postgres) UpdatePing(ping models.PingResult) error {
+	_, err := p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
+	if err != nil {
+		log.Printf("Error updating ping: %v\n", err)
 		return err
 	}
 
