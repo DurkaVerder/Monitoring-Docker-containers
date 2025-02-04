@@ -8,6 +8,9 @@ import (
 )
 
 type Service interface {
+	GetAllPing() ([]models.PingResult, error)
+	UpdateTablePings(newPing models.PingResult) error
+	Close()
 }
 
 type ServiceManager struct {
@@ -34,9 +37,23 @@ func (s *ServiceManager) GetAllPing() ([]models.PingResult, error) {
 	return pings, nil
 }
 
-func (s *ServiceManager) AddPing(ping models.PingResult) error {
-	if err := s.repo.AddPing(ping); err != nil {
-		log.Printf("Error adding ping: %v", err)
+func (s *ServiceManager) UpdateTablePings(newPing models.PingResult) error {
+	ping, err := s.repo.GetPing(newPing.IPAddress)
+	if err != nil {
+		log.Printf("Error getting ping: %v", err)
+		return err
+	}
+
+	if ping == nil {
+		if err := s.repo.AddPing(newPing); err != nil {
+			log.Printf("Error adding ping: %v", err)
+			return err
+		}
+	} else {
+		if err := s.repo.UpdatePing(newPing); err != nil {
+			log.Printf("Error updating ping: %v", err)
+			return err
+		}
 	}
 
 	return nil
