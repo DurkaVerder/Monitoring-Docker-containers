@@ -15,3 +15,6 @@ func NewServiceManager(repo repository.Repository) *ServiceManager {
 	}
 }
 
+func (s *ServiceManager) Close() {
+	s.repo.Close()
+}

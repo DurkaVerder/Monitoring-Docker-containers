@@ -59,3 +59,7 @@ func (p *Postgres) AddPing(ping models.PingResult) error {
 
 	return nil
 }
+
+func (p *Postgres) Close() {
+	p.db.Close()
+}
