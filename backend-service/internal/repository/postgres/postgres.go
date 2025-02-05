@@ -18,14 +18,14 @@ func NewPostgres(db *sql.DB) *Postgres {
 	return &Postgres{db: db}
 }
 
-func InitDB() (*sql.DB, error) {
+func InitDB() *sql.DB {
 	db, err := sql.Open("postgres", os.Getenv("DB_URL"))
 	if err != nil {
-		log.Printf("Error opening database connection: %v\n", err)
-		return nil, err
+		log.Fatalf("Error opening database connection: %v\n", err)
+		return nil
 	}
 
-	return db, nil
+	return db
 }
 
 func (p *Postgres) GetPing(IPAdress string) (*models.PingResult, error) {
