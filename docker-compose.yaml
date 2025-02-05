@@ -29,6 +29,7 @@ services:
     depends_on:
       - postgres
     environment:
+      - DB_URL=postgres://postgres:durka@postgres:5432/monitoring-docker-container
       - CONFIG_PATH=config/config.yaml
     networks:
       - monitoring-docker-container
