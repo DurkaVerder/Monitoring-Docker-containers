@@ -17,8 +17,8 @@ type Config struct {
 	} `yaml:"Routes"`
 }
 
-func LoadCfg() *Config {
-	file, err := os.Open("config.yaml")
+func LoadConfig(path string) *Config {
+	file, err := os.Open(path)
 	if err != nil {
 		log.Fatalf("Error opening file: %v", err)
 	}

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"backend-service/config"
 	"backend-service/internal/handlers"
 
 	"github.com/gin-gonic/gin"
@@ -8,24 +9,26 @@ import (
 
 type Server struct {
 	handlers handlers.Handlers
+	config   *config.Config
 	r        *gin.Engine
 }
 
-func NewServer(handlers handlers.Handlers) *Server {
+func NewServer(handlers handlers.Handlers, config *config.Config) *Server {
 	return &Server{
 		handlers: handlers,
+		config:   config,
 	}
 }
 
-func (s *Server) Run(port string) {
+func (s *Server) Run() {
 	s.r = gin.Default()
 
 	s.RegisterRoutes()
 
-	s.r.Run(port)
+	s.r.Run(s.config.Server.Port)
 }
 
 func (s *Server) RegisterRoutes() {
-	s.r.GET("/pings", s.handlers.HandlerGetAllPing)
-	s.r.POST("/ping/add", s.handlers.HandlerAddPing)
+	s.r.GET(s.config.Routes.GetAllPing, s.handlers.HandlerGetAllPing)
+	s.r.POST(s.config.Routes.AddPing, s.handlers.HandlerAddPing)
 }
