@@ -1,0 +1,5 @@
+Server:
+  port: :8080
+Routes:
+  addPing: /ping/add
+  getAllPing: /pings
