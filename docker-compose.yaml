@@ -1,1 +1,68 @@
 # DB_URL
+version: '3.9'
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: durka
+      POSTGRES_DB: monitoring-docker-container
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/database/init.sql
+    networks:
+      - monitoring-docker-container
+
+
+  backend:
+    build:
+      context: ./backend-service
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    environment:
+      - CONFIG_PATH=config/config.yaml
+    networks:
+      - monitoring-docker-container
+
+  frontend:
+    build:
+      context: ./frontend-service
+      dockerfile: Dockerfile
+    container_name: frontend
+    depends_on:
+      - postgres
+      - backend
+    #environment:
+    networks:
+      - order_processing_network
+
+  pinger:
+    build:
+      context: ./pinger-service
+      dockerfile: Dockerfile
+    container_name: pinger
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - backend
+    environment:
+      - CONFIG_PATH=config/config.yaml
+    networks:
+      - monitoring-docker-container
+ 
+volumes:
+  postgres_data:
+
+networks:
+  monitoring-docker-container:
+    driver: bridge
