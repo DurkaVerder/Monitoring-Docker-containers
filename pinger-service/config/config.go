@@ -8,12 +8,12 @@ import (
 )
 
 type Config struct {
-	Server struct {
-		Port string `yaml:"port"`
-	} `yaml:"Server"`
 	Response struct {
 		Address string `yaml:"address"`
 	} `yaml:"Response"`
+	Worker struct {
+		Count int `yaml:"count"`
+	} `yaml:"Worker"`
 }
 
 func LoadConfig(path string) *Config {

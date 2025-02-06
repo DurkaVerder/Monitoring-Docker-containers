@@ -1,4 +1,4 @@
-Server:
-  port: :8081
 Response:
   address: "http://backend:8080/ping/add"
+Worker:
+  count: 5
