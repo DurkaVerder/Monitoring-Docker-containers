@@ -9,7 +9,9 @@ import (
 
 type Config struct {
 	Response struct {
-		Address string `yaml:"address"`
+		Address       string `yaml:"address"`
+		RetryCount    int    `yaml:"retryCount"`
+		RetryInterval int    `yaml:"retryInterval"`
 	} `yaml:"Response"`
 	Worker struct {
 		Count int `yaml:"count"`

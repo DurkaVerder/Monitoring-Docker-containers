@@ -1,5 +1,7 @@
 Response:
   address: "http://backend:8080/ping/add"
+  retryCount: 3
+  retryInterval: 1
 Worker:
   count: 5
 Channel:

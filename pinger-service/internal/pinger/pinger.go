@@ -55,6 +55,11 @@ func (p *PingerService) pingAllContainer() error {
 		return err
 	}
 
+	if len(containers) == 0 {
+		log.Println("No containers to ping")
+		return nil
+	}
+
 	for _, container := range containers {
 		p.dockerContainers <- container
 	}
@@ -65,7 +70,12 @@ func (p *PingerService) pingAllContainer() error {
 func (p *PingerService) pingContainer(container types.Container) error {
 	var pingResult models.PingResult
 
-	IPAdress := container.NetworkSettings.Networks["bridge"].IPAddress
+	networkSetting := container.NetworkSettings.Networks["bridge"]
+	if networkSetting == nil {
+		log.Printf("Container %s has no bridge network", container.ID)
+		return errors.New("container has no bridge network")
+	}
+	IPAdress := networkSetting.IPAddress
 
 	pinger, err := ping.NewPinger(IPAdress)
 	if err != nil {
@@ -89,6 +99,18 @@ func (p *PingerService) pingContainer(container types.Container) error {
 }
 
 func (p *PingerService) sendPingResults(pingResult models.PingResult) error {
+	for i := 0; i < p.config.Response.RetryCount; i++ {
+		err := p.trySendPingResult(pingResult)
+		if err == nil {
+			return nil
+		}
+
+		time.Sleep(time.Second * time.Duration(p.config.Response.RetryInterval))
+	}
+	return errors.New("error sending ping result")
+}
+
+func (p *PingerService) trySendPingResult(pingResult models.PingResult) error {
 	jsonPingResult, err := json.Marshal(pingResult)
 	if err != nil {
 		log.Printf("Error marshalling ping result: %v", err)
