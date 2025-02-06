@@ -39,6 +39,8 @@ services:
       context: ./frontend-service
       dockerfile: Dockerfile
     container_name: frontend
+    ports:
+      - "3000:8081"
     depends_on:
       - postgres
       - backend
@@ -51,8 +53,6 @@ services:
       context: ./pinger-service
       dockerfile: Dockerfile
     container_name: pinger
-    ports:
-      - "8080:8080"
     depends_on:
       - postgres
       - backend
