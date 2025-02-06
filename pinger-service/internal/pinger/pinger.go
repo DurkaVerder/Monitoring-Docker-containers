@@ -70,32 +70,37 @@ func (p *PingerService) pingAllContainer() error {
 func (p *PingerService) pingContainer(container types.Container) error {
 	var pingResult models.PingResult
 
-	networkSetting := container.NetworkSettings.Networks["bridge"]
-	if networkSetting == nil {
-		log.Printf("Container %s has no bridge network", container.ID)
-		return errors.New("container has no bridge network")
+	networks := container.NetworkSettings.Networks
+
+	for networkName, networkSetting := range networks {
+		if networkSetting == nil || networkSetting.IPAddress == "" {
+			log.Printf("Container %s has no IP address in network %s", container.ID, networkName)
+			continue
+		}
+
+		IPAdress := networkSetting.IPAddress
+
+		pinger, err := ping.NewPinger(IPAdress)
+		if err != nil {
+			log.Printf("Error creating pinger: %v", err)
+			return err
+		}
+
+		pinger.Count = 1
+		pinger.Timeout = time.Second * 1
+		pinger.Run()
+
+		pingResult.IPAddress = IPAdress
+		pingResult.PingTime = int(pinger.Statistics().AvgRtt.Milliseconds())
+		if pinger.Statistics().PacketLoss == 0 {
+			pingResult.DateSuccessfulPing = time.Now()
+		}
+
+		p.pingResultChan <- pingResult
+
+		return nil
 	}
-	IPAdress := networkSetting.IPAddress
-
-	pinger, err := ping.NewPinger(IPAdress)
-	if err != nil {
-		log.Printf("Error creating pinger: %v", err)
-		return err
-	}
-
-	pinger.Count = 1
-	pinger.Timeout = time.Second * 1
-	pinger.Run()
-
-	pingResult.IPAddress = IPAdress
-	pingResult.PingTime = int(pinger.Statistics().AvgRtt.Milliseconds())
-	if pinger.Statistics().PacketLoss == 0 {
-		pingResult.DateSuccessfulPing = time.Now()
-	}
-
-	p.pingResultChan <- pingResult
-
-	return nil
+	return errors.New("no network found")
 }
 
 func (p *PingerService) sendPingResults(pingResult models.PingResult) error {
