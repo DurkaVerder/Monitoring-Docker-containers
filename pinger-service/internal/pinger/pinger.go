@@ -30,12 +30,13 @@ type PingerService struct {
 	config           *config.Config
 }
 
-func NewPingerService(cli *client.Client, pingResultChan chan models.PingResult, dockerContainers chan types.Container) *PingerService {
+func NewPingerService(cli *client.Client, pingResultChan chan models.PingResult, dockerContainers chan types.Container, cfg *config.Config) *PingerService {
 	return &PingerService{
 		dockerClient:     cli,
 		pingResultChan:   pingResultChan,
 		dockerContainers: dockerContainers,
 		wg:               sync.WaitGroup{},
+		config:           cfg,
 	}
 }
 

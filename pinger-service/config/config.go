@@ -14,6 +14,9 @@ type Config struct {
 	Worker struct {
 		Count int `yaml:"count"`
 	} `yaml:"Worker"`
+	Channel struct {
+		Size int `yaml:"size"`
+	} `yaml:"Channel"`
 }
 
 func LoadConfig(path string) *Config {
