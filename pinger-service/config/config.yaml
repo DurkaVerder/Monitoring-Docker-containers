@@ -1,5 +1,5 @@
 Response:
-  address: "http://frontend:8081/api/ping-results"
+  address: "http://frontend:3000/api/ping-results"
   retryCount: 3
   retryInterval: 1
 Worker:
