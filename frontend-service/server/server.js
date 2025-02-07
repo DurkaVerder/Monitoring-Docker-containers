@@ -1,7 +1,10 @@
 const express = require('express');
 const axios = require('axios');
+const cors = require('cors');
 const app = express();
 
+
+app.use(cors());
 app.use(express.json());
 
 app.post('/ping-results', async (req, res) => {
@@ -18,7 +21,7 @@ app.post('/ping-results', async (req, res) => {
 
 app.get('/data', async (req, res) => {
   try {
-    const response = await axios.get('http://frontend-server:3000/api/pings');
+    const response = await axios.get('http://backend:8080/api/pings');
     res.send(response.data);
   } catch (error) {
     console.error('Error fetching data from Backend:', error.message);
@@ -26,6 +29,6 @@ app.get('/data', async (req, res) => {
   }
 });
 
-app.listen(3001, () => {
+app.listen(3001, '0.0.0.0', () => {
   console.log('Express server running on http://localhost:3001');
 });
