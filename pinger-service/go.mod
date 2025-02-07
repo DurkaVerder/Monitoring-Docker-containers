@@ -10,12 +10,13 @@ require (
 
 require (
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/lib/pq v1.10.9 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 )
 
 require (
-	github.com/DurkaVerder/models v1.0.6
+	github.com/DurkaVerder/models v1.0.7
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect

@@ -87,13 +87,16 @@ func (p *PingerService) pingContainer(container types.Container) error {
 		}
 
 		pinger.Count = 1
-		pinger.Timeout = time.Second * 1
+		pinger.Timeout = time.Second * 3
 		pinger.Run()
 
 		pingResult.IPAddress = IPAdress
 		pingResult.PingTime = int(pinger.Statistics().AvgRtt.Milliseconds())
 		if pinger.Statistics().PacketLoss == 0 {
 			pingResult.DateSuccessfulPing.Time = time.Now()
+			pingResult.DateSuccessfulPing.Valid = true
+		} else {
+			pingResult.DateSuccessfulPing.Valid = false
 		}
 
 		p.pingResultChan <- pingResult
