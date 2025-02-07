@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/DurkaVerder/models"
-
 	_ "github.com/lib/pq"
 )
 
@@ -67,6 +66,7 @@ func (p *Postgres) GetAllPing() ([]models.PingResult, error) {
 
 func (p *Postgres) AddPing(ping models.PingResult) error {
 	_, err := p.db.Exec(AddPingQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
+
 	if err != nil {
 		log.Printf("Error adding ping: %v\n", err)
 		return err
@@ -78,9 +78,9 @@ func (p *Postgres) AddPing(ping models.PingResult) error {
 func (p *Postgres) UpdatePing(ping models.PingResult) error {
 	var err error
 	if ping.DateSuccessfulPing.Valid {
-		_, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing.Time)
+		_, err = p.db.Exec(UpdatePingWithDateQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
 	} else {
-		_, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime, nil)
+		_, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime)
 	}
 	if err != nil {
 		log.Printf("Error updating ping: %v\n", err)

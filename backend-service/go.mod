@@ -4,7 +4,7 @@ go 1.23.3
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
-	github.com/DurkaVerder/models v1.0.6
+	github.com/DurkaVerder/models v1.0.7
 	github.com/gin-gonic/gin v1.10.0
 	github.com/lib/pq v1.10.9
 	github.com/stretchr/testify v1.10.0

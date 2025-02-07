@@ -58,6 +58,3 @@ func (s *ServiceManager) UpdateTablePings(newPing models.PingResult) error {
 
 	return nil
 }
-
-
-
