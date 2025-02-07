@@ -48,12 +48,27 @@ services:
     networks:
       - order_processing_network
 
+  frontend-server:
+    build:
+      context: ./frontend-service
+      dockerfile: Dockerfile
+    container_name: frontend-server
+    ports:
+      - "3001:8082"
+    depends_on:
+      - postgres
+      - backend
+    #environment:
+    networks:
+      - order_processing_network
+
   pinger:
     build:
       context: ./pinger-service
       dockerfile: Dockerfile
     container_name: pinger
     depends_on:
+      - frontend-server
       - postgres
       - backend
     environment:
