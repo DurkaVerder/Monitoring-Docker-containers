@@ -36,7 +36,7 @@ services:
 
   frontend:
     build:
-      context: ./frontend-service
+      context: ./frontend-service/frontend
       dockerfile: Dockerfile
     container_name: frontend
     ports:
@@ -46,11 +46,11 @@ services:
       - backend
     #environment:
     networks:
-      - order_processing_network
+      - monitoring-docker-container
 
   frontend-server:
     build:
-      context: ./frontend-service
+      context: ./frontend-service/server
       dockerfile: Dockerfile
     container_name: frontend-server
     ports:
@@ -58,9 +58,8 @@ services:
     depends_on:
       - postgres
       - backend
-    #environment:
     networks:
-      - order_processing_network
+      - monitoring-docker-container
 
   pinger:
     build:
