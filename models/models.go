@@ -1,10 +1,10 @@
 package models
 
-import "time"
+import "database/sql"
 
 type PingResult struct {
-	ID                 int       `json:"id"`
-	IPAddress          string    `json:"ip_address"`
-	PingTime           int       `json:"ping_time"`
-	DateSuccessfulPing time.Time `json:"date_successful_ping"`
+	ID                 int          `json:"id"`
+	IPAddress          string       `json:"ip_address"`
+	PingTime           int          `json:"ping_time"`
+	DateSuccessfulPing sql.NullTime `json:"date_successful_ping"`
 }

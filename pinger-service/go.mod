@@ -15,7 +15,7 @@ require (
 )
 
 require (
-	github.com/DurkaVerder/models v1.0.2
+	github.com/DurkaVerder/models v1.0.6
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/distribution/reference v0.6.0 // indirect

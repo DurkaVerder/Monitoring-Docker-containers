@@ -30,7 +30,7 @@ func InitDB() *sql.DB {
 
 func (p *Postgres) GetPing(IPAdress string) (*models.PingResult, error) {
 	var ping models.PingResult
-	err := p.db.QueryRow(GetPingQuery, IPAdress).Scan(&ping.IPAddress, &ping.PingTime, &ping.DateSuccessfulPing)
+	err := p.db.QueryRow(GetPingQuery, IPAdress).Scan(&ping.ID, &ping.IPAddress, &ping.PingTime, &ping.DateSuccessfulPing)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No ping result found for IP: %s\n", IPAdress)
@@ -54,7 +54,7 @@ func (p *Postgres) GetAllPing() ([]models.PingResult, error) {
 	var pings []models.PingResult
 	for rows.Next() {
 		var ping models.PingResult
-		err = rows.Scan(&ping.IPAddress, &ping.PingTime, &ping.DateSuccessfulPing)
+		err = rows.Scan(&ping.ID, &ping.IPAddress, &ping.PingTime, &ping.DateSuccessfulPing)
 		if err != nil {
 			log.Printf("Error scanning row: %v\n", err)
 			return nil, err
@@ -76,7 +76,12 @@ func (p *Postgres) AddPing(ping models.PingResult) error {
 }
 
 func (p *Postgres) UpdatePing(ping models.PingResult) error {
-	_, err := p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
+	var err error
+	if ping.DateSuccessfulPing.Valid {
+		_, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing.Time)
+	} else {
+		_, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime, nil)
+	}
 	if err != nil {
 		log.Printf("Error updating ping: %v\n", err)
 		return err

@@ -9,7 +9,7 @@ SET
 ping_time = $2,
 date_successful_ping = CASE 
 						  WHEN $3 IS NOT NULL THEN $3 
-						  ELSE date_successful_ping 
+						  ELSE date_successful_ping
 					   END
 WHERE ip_address = $1;`
 

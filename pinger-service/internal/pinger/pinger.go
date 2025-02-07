@@ -93,7 +93,7 @@ func (p *PingerService) pingContainer(container types.Container) error {
 		pingResult.IPAddress = IPAdress
 		pingResult.PingTime = int(pinger.Statistics().AvgRtt.Milliseconds())
 		if pinger.Statistics().PacketLoss == 0 {
-			pingResult.DateSuccessfulPing = time.Now()
+			pingResult.DateSuccessfulPing.Time = time.Now()
 		}
 
 		p.pingResultChan <- pingResult
@@ -202,6 +202,6 @@ func (p *PingerService) Run(ctx context.Context) {
 			log.Printf("Error pinging containers: %v", err)
 		}
 
-		time.Sleep(time.Minute * 1)
+		time.Sleep(time.Second * 10)
 	}
 }

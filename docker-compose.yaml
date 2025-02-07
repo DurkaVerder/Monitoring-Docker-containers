@@ -3,9 +3,9 @@ version: '3.9'
 
 services:
 
-  postgres:
+  postgresForMonitoringDockerContainer:
     image: postgres:15
-    container_name: postgres
+    container_name: postgresForMonitoringDockerContainer
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: durka
@@ -14,7 +14,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/database/init.sql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - monitoring-docker-container
 
@@ -27,9 +27,9 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - postgres
+      - postgresForMonitoringDockerContainer
     environment:
-      - DB_URL=postgres://postgres:durka@postgres:5432/monitoring-docker-container
+      - DB_URL=postgres://postgres:durka@postgresForMonitoringDockerContainer:5432/monitoring-docker-container?sslmode=disable
       - CONFIG_PATH=config/config.yaml
     networks:
       - monitoring-docker-container
@@ -40,9 +40,9 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "3000:8081"
+      - "3000:3000"
     depends_on:
-      - postgres
+      - postgresForMonitoringDockerContainer
       - backend
     #environment:
     networks:
@@ -54,9 +54,9 @@ services:
       dockerfile: Dockerfile
     container_name: frontend-server
     ports:
-      - "3001:8082"
+      - "3001:3001"
     depends_on:
-      - postgres
+      - postgresForMonitoringDockerContainer
       - backend
     networks:
       - monitoring-docker-container
@@ -66,12 +66,16 @@ services:
       context: ./pinger-service
       dockerfile: Dockerfile
     container_name: pinger
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       - frontend-server
-      - postgres
+      - postgresForMonitoringDockerContainer
       - backend
     environment:
       - CONFIG_PATH=config/config.yaml
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DOCKER_API_VERSION=1.45
     networks:
       - monitoring-docker-container
  
