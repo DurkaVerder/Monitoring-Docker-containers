@@ -42,6 +42,7 @@ func NewPingerService(cli *client.Client, pingResultChan chan models.PingResult,
 
 func (p *PingerService) getContainers() ([]types.Container, error) {
 	containers, err := p.dockerClient.ContainerList(context.Background(), container.ListOptions{})
+	log.Printf("Count containers: %d", len(containers))
 	if err != nil {
 		return nil, err
 	}
@@ -70,27 +71,30 @@ func (p *PingerService) pingAllContainer() error {
 func (p *PingerService) pingContainer(container types.Container) error {
 	var pingResult models.PingResult
 
-	networks := container.NetworkSettings.Networks
+	details, err := p.dockerClient.ContainerInspect(context.Background(), container.ID)
+	if err != nil {
+		log.Printf("Error inspecting container: %v", err)
+		return err
+	}
 
-	for networkName, networkSetting := range networks {
-		if networkSetting == nil || networkSetting.IPAddress == "" {
+	for networkName, network := range details.NetworkSettings.Networks {
+		ip := network.IPAddress
+		if network == nil || ip == "" {
 			log.Printf("Container %s has no IP address in network %s", container.ID, networkName)
 			continue
 		}
 
-		IPAdress := networkSetting.IPAddress
-
-		pinger, err := ping.NewPinger(IPAdress)
+		pinger, err := ping.NewPinger(ip)
 		if err != nil {
 			log.Printf("Error creating pinger: %v", err)
 			return err
 		}
 
-		pinger.Count = 1
+		pinger.Count = 5
 		pinger.Timeout = time.Second * 3
 		pinger.Run()
 
-		pingResult.IPAddress = IPAdress
+		pingResult.IPAddress = ip
 		pingResult.PingTime = int(pinger.Statistics().AvgRtt.Milliseconds())
 		if pinger.Statistics().PacketLoss == 0 {
 			pingResult.DateSuccessfulPing.Time = time.Now()
@@ -100,16 +104,15 @@ func (p *PingerService) pingContainer(container types.Container) error {
 		}
 
 		p.pingResultChan <- pingResult
-
-		return nil
 	}
-	return errors.New("no network found")
+	return errors.New(container.ID + " no network found")
 }
 
 func (p *PingerService) sendPingResults(pingResult models.PingResult) error {
 	for i := 0; i < p.config.Response.RetryCount; i++ {
 		err := p.trySendPingResult(pingResult)
 		if err == nil {
+			log.Printf("Ping result sent: %v", pingResult)
 			return nil
 		}
 

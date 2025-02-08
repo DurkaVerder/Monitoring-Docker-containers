@@ -15,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
-      - monitoring-docker-container
+      - pinger-network
 
 
   backend:
@@ -31,7 +31,7 @@ services:
       - DB_URL=postgres://postgres:durka@postgresForMonitoringDockerContainer:5432/monitoring-docker-container?sslmode=disable
       - CONFIG_PATH=config/config.yaml
     networks:
-      - monitoring-docker-container
+      - pinger-network
 
   frontend:
     build:
@@ -46,7 +46,7 @@ services:
       - backend
     #environment:
     networks:
-      - monitoring-docker-container
+      - pinger-network
 
   frontend-server:
     build:
@@ -59,30 +59,35 @@ services:
       - postgresForMonitoringDockerContainer
       - backend
     networks:
-      - monitoring-docker-container
+      - pinger-network
 
   pinger:
     build:
       context: ./pinger-service
       dockerfile: Dockerfile
     container_name: pinger
+    cap_add:
+      - NET_RAW
+      - NET_ADMIN
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - CONFIG_PATH=config/config.yaml
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DOCKER_API_VERSION=1.45
     depends_on:
       - frontend
       - frontend-server
       - postgresForMonitoringDockerContainer
       - backend
-    environment:
-      - CONFIG_PATH=config/config.yaml
-      - DOCKER_HOST=unix:///var/run/docker.sock
-      - DOCKER_API_VERSION=1.45
-    networks:
-      - monitoring-docker-container
- 
+    networks: 
+      - pinger-network
+
 volumes:
   postgres_data:
 
 networks:
-  monitoring-docker-container:
+  pinger-network:
     driver: bridge
+    external: true
+      
