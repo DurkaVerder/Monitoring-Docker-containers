@@ -33,7 +33,7 @@ func (p *Postgres) GetPing(IPAdress string) (*models.PingResult, error) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			log.Printf("No ping result found for IP: %s\n", IPAdress)
-			return nil, nil
+			return nil, sql.ErrNoRows
 		}
 		log.Printf("Error getting ping: %v\n", err)
 		return nil, err
@@ -76,15 +76,26 @@ func (p *Postgres) AddPing(ping models.PingResult) error {
 }
 
 func (p *Postgres) UpdatePing(ping models.PingResult) error {
+	var result sql.Result
 	var err error
 	if ping.DateSuccessfulPing.Valid {
-		_, err = p.db.Exec(UpdatePingWithDateQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
+		result, err = p.db.Exec(UpdatePingWithDateQuery, ping.IPAddress, ping.PingTime, ping.DateSuccessfulPing)
 	} else {
-		_, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime)
+		result, err = p.db.Exec(UpdatePingQuery, ping.IPAddress, ping.PingTime)
 	}
 	if err != nil {
 		log.Printf("Error updating ping: %v\n", err)
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Printf("Error getting rows affected: %v\n", err)
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return sql.ErrNoRows
 	}
 
 	return nil
