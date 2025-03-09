@@ -1,28 +1,29 @@
 # Monitoring-Docker-containers
 
+## Как запустить проект
 
-## How to run the project
+1. Клонируйте репозиторий.
+2. Запустите bash-скрипт `./start.sh`, чтобы запустить проект. Этот скрипт соберёт образы и запустит контейнеры.
+3. Откройте браузер и перейдите по адресу `http://localhost:3000`, чтобы увидеть фронтенд.
 
-- Clone the repository
-- Run the bash script `./start.sh` to start the project. This script will build the images and start the containers.
-- Open the browser and go to `http://localhost:3000` to see the frontend.
+## Как остановить проект
 
-## How to stop the project
-- Run the bash script `./stop.sh` to stop the project. This script will stop the containers and remove them.
+- Запустите bash-скрипт `./stop.sh`, чтобы остановить проект. Этот скрипт остановит контейнеры и удалит их.
 
-## How to use the project
-- The frontend displays the data from the database in a table. The data is updated every 5 seconds.
+## Как пользоваться проектом
 
-## Services
-- ### Backend
-  - The backend service receives data via the "api/ping/add" endpoint, and then updates the data in the database. All pings from the database are sent to the "api/pings" endpoint.
+- Фронтенд отображает данные из базы данных в таблице. Обновление данных происходит каждые 5 секунд.
 
-- ### Frontend
-  - The frontend service displays the data from the database in a table. The data is updated every 5 seconds. There is also a server that redirects the data.
+## Сервисы
 
-- ### Database
-  - The database service is a PostgreSQL database that stores the pings.
+### Backend
+- Сервис бэкенда получает данные через эндпоинт `api/ping/add` и обновляет их в базе данных. Все пинги из базы данных можно получить через эндпоинт `api/pings`.
 
-- ### Pinger
-  - The pinger service pings all Docker containers every 30 seconds and sends the data.
+### Frontend
+- Сервис фронтенда отображает данные из базы данных в таблице. Обновление данных происходит каждые 5 секунд. Также реализован сервер, который перенаправляет данные.
 
+### Database
+- Сервис базы данных представляет собой PostgreSQL, в котором хранятся данные о пингах.
+
+### Pinger
+- Сервис пингера отправляет пинги всем Docker-контейнерам каждые 30 секунд и передаёт данные.
